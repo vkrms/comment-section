@@ -3,10 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  esbuild: {
-    jsx: 'automatic',
-  },
+  plugins: [react({ jsxRuntime: 'automatic' })],
   server: {
     port: 6572,
   },
