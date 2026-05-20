@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import * as Avatar from '@radix-ui/react-avatar'
 import deleteIcon from '../../images/icon-delete.svg'
 import editIcon from '../../images/icon-edit.svg'
@@ -16,8 +16,21 @@ function getInitials(username) {
         .join('')
 }
 
-function CommentCard({ comment, avatarSrc, currentUsername }) {
-    const [score, setScore] = useState(comment.score)
+function CommentCard({
+    comment,
+    avatarSrc,
+    currentUsername,
+    onUpvote,
+    onDownvote,
+    onReply,
+    onDelete,
+    onEdit,
+    onCancelEdit,
+    isEditing = false,
+    editValue = '',
+    onEditChange,
+    onEditSubmit,
+}) {
     const isCurrentUser = comment.user.username === currentUsername
 
     return (
@@ -26,20 +39,20 @@ function CommentCard({ comment, avatarSrc, currentUsername }) {
                 <button
                     type="button"
                     className="comment-card__score-button"
-                    onClick={() => setScore((currentScore) => currentScore + 1)}
+                    onClick={onUpvote}
                     aria-label="Upvote comment"
                 >
                     <img src={plusIcon} alt="" aria-hidden="true" />
                 </button>
 
                 <output className="comment-card__score-value" aria-live="polite">
-                    {score}
+                    {comment.score}
                 </output>
 
                 <button
                     type="button"
                     className="comment-card__score-button"
-                    onClick={() => setScore((currentScore) => Math.max(0, currentScore - 1))}
+                    onClick={onDownvote}
                     aria-label="Downvote comment"
                 >
                     <img src={minusIcon} alt="" aria-hidden="true" />
@@ -67,6 +80,7 @@ function CommentCard({ comment, avatarSrc, currentUsername }) {
                         <button
                             type="button"
                             className="comment-card__action comment-card__action--delete"
+                            onClick={onDelete}
                         >
                             <img src={deleteIcon} alt="" aria-hidden="true" />
                             Delete
@@ -74,25 +88,44 @@ function CommentCard({ comment, avatarSrc, currentUsername }) {
                         <button
                             type="button"
                             className="comment-card__action comment-card__action--edit"
+                            onClick={isEditing ? onCancelEdit : onEdit}
                         >
                             <img src={editIcon} alt="" aria-hidden="true" />
-                            Edit
+                            {isEditing ? 'Cancel' : 'Edit'}
                         </button>
                     </>
                 ) : (
-                    <button type="button" className="comment-card__action comment-card__action--reply">
+                    <button type="button" className="comment-card__action comment-card__action--reply" onClick={onReply}>
                         <img src={replyIcon} alt="" aria-hidden="true" />
                         Reply
                     </button>
                 )}
             </div>
 
-            <p className="comment-card__body">
-                {comment.replyingTo ? (
-                    <span className="comment-card__replying-to">@{comment.replyingTo} </span>
-                ) : null}
-                {comment.content}
-            </p>
+            {isEditing ? (
+                <form className="comment-card__editor" onSubmit={onEditSubmit}>
+                    <label className="sr-only" htmlFor={`edit-comment-${comment.id}`}>
+                        Edit comment by {comment.user.username}
+                    </label>
+                    <textarea
+                        id={`edit-comment-${comment.id}`}
+                        className="comment-card__editor-input"
+                        value={editValue}
+                        onChange={onEditChange}
+                        rows="4"
+                    />
+                    <button type="submit" className="comment-card__editor-submit">
+                        Update
+                    </button>
+                </form>
+            ) : (
+                <p className="comment-card__body">
+                    {comment.replyingTo ? (
+                        <span className="comment-card__replying-to">@{comment.replyingTo} </span>
+                    ) : null}
+                    {comment.content}
+                </p>
+            )}
         </article>
     )
 }

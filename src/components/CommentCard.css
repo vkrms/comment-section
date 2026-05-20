@@ -158,6 +158,46 @@
     line-height: 1.6;
 }
 
+.comment-card__editor {
+    grid-area: body;
+    display: grid;
+    gap: 1rem;
+}
+
+.comment-card__editor-input {
+    width: 100%;
+    min-height: 6rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--grey-100);
+    border-radius: 0.5rem;
+    resize: vertical;
+    color: var(--grey-800);
+}
+
+.comment-card__editor-input:focus-visible,
+.comment-card__editor-submit:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+}
+
+.comment-card__editor-submit {
+    justify-self: end;
+    min-width: 6.5rem;
+    padding: 0.875rem 1.75rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: var(--purple-600);
+    color: var(--white);
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.comment-card__editor-submit:hover {
+    background: var(--purple-200);
+}
+
 .comment-card__replying-to {
     color: var(--purple-600);
     font-weight: 700;
