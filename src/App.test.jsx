@@ -140,4 +140,60 @@ describe('App', () => {
     // textbox is gone
     expect(within(commentToEdit).queryByRole('textbox', { name: /edit comment by juliusomo/i })).not.toBeInTheDocument()
   })
+
+  it('allows current user to reply to someone else’s comment, adds the new reply to the correct comment thread, and resets the input', async () => {
+    render(<App initialData={testData} />)
+
+    const user = userEvent.setup()
+    const commentToReplyTo = getCommentByUsername('maxblagun')
+    const replyButton = within(commentToReplyTo).getByRole('button', { name: /reply/i })
+
+    await user.click(replyButton)
+
+    const textbox = screen.getByRole('textbox', { name : /reply/i })
+    expect(textbox).toBeInTheDocument()
+
+    const commentText = 'This is a reply'
+    await user.type(textbox, commentText)
+
+
+    const replyComposer = textbox.closest('form')
+    const sendReplyButton = within(replyComposer).getByRole('button', { name: /reply/i })
+    await user.click(sendReplyButton)
+
+    const thread = screen.getByRole('group', { name: /maxblagun replies/i })
+
+    // textbox is gone
+    expect(within(thread).queryByRole('textbox', { name : /reply/i })).not.toBeInTheDocument()
+    // in the right thread
+    expect(within(thread).getByText(commentText)).toBeInTheDocument()
+
+    const newReply = getCommentByText(commentText)
+    expect(newReply).toBeInTheDocument()
+
+    // has edit, delete, but not reply actions
+    const newReplyActions = within(newReply)
+    expect(newReplyActions.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+    expect(newReplyActions.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+    expect(newReplyActions.queryByRole('button', { name: /reply/i })).not.toBeInTheDocument()
+  })
+
+  it('allows current user to delete their comment and removes it from the thread', async () => {
+    render(<App initialData={testData} />)
+
+    const user = userEvent.setup()
+
+    // find comment by juliusomo
+    const commentToDelete = getCommentByUsername('juliusomo')
+
+    // find delete button
+    const deleteButton = within(commentToDelete).getByRole('button', { name: /delete/i })
+    // click it
+    await user.click(deleteButton)
+    // approve modal
+    const confirmButton = screen.getByRole('button', { name: /yes, delete/i })
+    await user.click(confirmButton)
+    // the comment is gone
+    expect(commentToDelete).not.toBeInTheDocument()
+  })
 })
