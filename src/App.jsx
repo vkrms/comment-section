@@ -5,6 +5,7 @@ import juliusomoAvatar from '../images/avatars/image-juliusomo.webp'
 import maxblagunAvatar from '../images/avatars/image-maxblagun.webp'
 import ramsesmironAvatar from '../images/avatars/image-ramsesmiron.webp'
 import CommentCard from './components/CommentCard'
+import DeleteCommentDialog from './components/DeleteCommentDialog'
 import {
   addComment,
   addReplyToComment,
@@ -37,6 +38,7 @@ function App({ initialData = defaultData }) {
   const [comments, setComments] = useState(() => getStoredComments(initialData.comments))
   const [newCommentContent, setNewCommentContent] = useState('')
   const [activeDraft, setActiveDraft] = useState(null)
+  const [commentPendingDeletion, setCommentPendingDeletion] = useState(null)
 
   useEffect(() => {
     setStoredComments(comments)
@@ -44,6 +46,10 @@ function App({ initialData = defaultData }) {
 
   function closeDraft() {
     setActiveDraft(null)
+  }
+
+  function closeDeleteDialog() {
+    setCommentPendingDeletion(null)
   }
 
   function handleScoreChange(commentId, scoreChange) {
@@ -152,10 +158,16 @@ function App({ initialData = defaultData }) {
     closeDraft()
   }
 
-  function handleDelete(targetId) {
-    if (!window.confirm('Delete this comment? This action cannot be undone.')) {
+  function handleDeleteRequest(targetId) {
+    setCommentPendingDeletion({ targetId })
+  }
+
+  function handleDeleteConfirm() {
+    if (!commentPendingDeletion) {
       return
     }
+
+    const { targetId } = commentPendingDeletion
 
     setComments((currentComments) => deleteCommentById(currentComments, targetId))
 
@@ -170,6 +182,8 @@ function App({ initialData = defaultData }) {
 
       return currentDraft
     })
+
+    closeDeleteDialog()
   }
 
   function renderReplyComposer(targetId) {
@@ -223,7 +237,7 @@ function App({ initialData = defaultData }) {
                 onUpvote={() => handleScoreChange(comment.id, 1)}
                 onDownvote={() => handleScoreChange(comment.id, -1)}
                 onReply={() => handleReplyStart(comment.id, comment.id, comment.user.username)}
-                onDelete={() => handleDelete(comment.id)}
+                onDelete={() => handleDeleteRequest(comment.id)}
                 onEdit={() => handleEditStart(comment)}
                 onCancelEdit={closeDraft}
                 isEditing={activeDraft?.mode === 'edit' && activeDraft.targetId === comment.id}
@@ -232,10 +246,12 @@ function App({ initialData = defaultData }) {
                 onEditSubmit={handleEditSubmit}
               />
 
-              {renderReplyComposer(comment.id)}
 
               {comment.replies.length > 0 ? (
-                <div className="comment-thread__replies" aria-label={`${comment.user.username} replies`}>
+                <div className="comment-thread__replies" role="group" aria-label={`${comment.user.username} replies`}>
+
+                  {renderReplyComposer(comment.id)}
+
                   {comment.replies.map((reply) => (
                     <React.Fragment key={reply.id}>
                       <CommentCard
@@ -245,7 +261,7 @@ function App({ initialData = defaultData }) {
                         onUpvote={() => handleScoreChange(reply.id, 1)}
                         onDownvote={() => handleScoreChange(reply.id, -1)}
                         onReply={() => handleReplyStart(comment.id, reply.id, reply.user.username)}
-                        onDelete={() => handleDelete(reply.id)}
+                        onDelete={() => handleDeleteRequest(reply.id)}
                         onEdit={() => handleEditStart(reply)}
                         onCancelEdit={closeDraft}
                         isEditing={activeDraft?.mode === 'edit' && activeDraft.targetId === reply.id}
@@ -287,6 +303,16 @@ function App({ initialData = defaultData }) {
             Send
           </button>
         </form>
+
+        <DeleteCommentDialog
+          open={commentPendingDeletion !== null}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              closeDeleteDialog()
+            }
+          }}
+          onConfirm={handleDeleteConfirm}
+        />
       </section>
     </main>
   )

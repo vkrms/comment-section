@@ -109,7 +109,7 @@
   border: 0;
   border-radius: 0.5rem;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -126,6 +126,78 @@
 
 .comment-composer__submit:hover {
   background: var(--purple-200);
+}
+
+.delete-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  background: hsl(212 24% 26% / 0.5);
+}
+
+.delete-dialog__content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  gap: 1.25rem;
+  width: min(calc(100vw - 2rem), 25rem);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  transform: translate(-50%, -50%);
+}
+
+.delete-dialog__content:focus-visible {
+  outline: none;
+}
+
+.delete-dialog__title {
+  color: var(--grey-800);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.delete-dialog__description {
+  color: var(--grey-500);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.delete-dialog__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.delete-dialog__button {
+  flex: 1;
+  min-height: 3rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.5rem;
+  color: var(--white);
+  font-weight: 500;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 180ms ease;
+}
+
+.delete-dialog__button:hover {
+  opacity: 0.72;
+}
+
+.delete-dialog__button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.delete-dialog__button--cancel {
+  background: var(--grey-500);
+}
+
+.delete-dialog__button--confirm {
+  background: var(--pink-400);
 }
 
 .sr-only {
@@ -172,5 +244,9 @@
   .comment-composer__submit {
     grid-area: actions;
     justify-self: end;
+  }
+
+  .delete-dialog__content {
+    padding: 1.5rem;
   }
 }
