@@ -252,3 +252,7 @@ Let's discuss the approach first. There are a few patterns for dark mode:
 Each has trade-offs around complexity, persistence, and respecting user preferences.
 
 Which approach interests you? Once you decide, we can discuss the implementation steps."
+
+---
+
+Don't write any tests, I will do that manually
