@@ -1,11 +1,11 @@
 import React from 'react'
 import * as Avatar from '@radix-ui/react-avatar'
-import deleteIcon from '../../images/icon-delete.svg'
-import editIcon from '../../images/icon-edit.svg'
-import plusIcon from '../../images/icon-plus.svg'
-import minusIcon from '../../images/icon-minus.svg'
-import replyIcon from '../../images/icon-reply.svg'
-import { VOTE_VALUE } from '../commentUtils'
+import deleteIcon from '../assets/icon-delete.svg'
+import editIcon from '../assets/icon-edit.svg'
+import plusIcon from '../assets/icon-plus.svg'
+import minusIcon from '../assets/icon-minus.svg'
+import replyIcon from '../assets/icon-reply.svg'
+import { VOTE_VALUE } from '../lib/commentUtils'
 import './CommentCard.css'
 
 function getInitials(username) {
