@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import defaultData from '../data.json'
-import amyrobsonAvatar from '../images/avatars/image-amyrobson.webp'
-import juliusomoAvatar from '../images/avatars/image-juliusomo.webp'
-import maxblagunAvatar from '../images/avatars/image-maxblagun.webp'
-import ramsesmironAvatar from '../images/avatars/image-ramsesmiron.webp'
 import CommentCard from './components/CommentCard'
 import DeleteCommentDialog from './components/DeleteCommentDialog'
 import {
@@ -17,19 +13,8 @@ import {
   updateCommentContent,
   updateCommentVote,
   VOTE_VALUE,
-} from './commentUtils'
+} from './lib/commentUtils'
 import './App.css'
-
-const avatarMap = {
-  amyrobson: amyrobsonAvatar,
-  juliusomo: juliusomoAvatar,
-  maxblagun: maxblagunAvatar,
-  ramsesmiron: ramsesmironAvatar,
-}
-
-function getAvatarSrc(username) {
-  return avatarMap[username]
-}
 
 function createTimestampLabel() {
   return 'Just now'
@@ -204,7 +189,7 @@ function App({ initialData = defaultData }) {
       <form className="comment-composer comment-composer--inline" onSubmit={handleReplySubmit}>
         <img
           className="comment-composer__avatar"
-          src={getAvatarSrc(currentUser.username)}
+          src={currentUser.image.webp}
           alt=""
           aria-hidden="true"
           width="40"
@@ -242,7 +227,7 @@ function App({ initialData = defaultData }) {
               <CommentCard
                 comment={comment}
                 displayedScore={getDisplayedScore(comment)}
-                avatarSrc={getAvatarSrc(comment.user.username)}
+                avatarSrc={comment.user.image.webp}
                 currentUsername={currentUser.username}
                 onUpvote={() => handleScoreChange(comment.id, VOTE_VALUE.up)}
                 onDownvote={() => handleScoreChange(comment.id, VOTE_VALUE.down)}
@@ -267,7 +252,7 @@ function App({ initialData = defaultData }) {
                       <CommentCard
                         comment={reply}
                         displayedScore={getDisplayedScore(reply)}
-                        avatarSrc={getAvatarSrc(reply.user.username)}
+                        avatarSrc={reply.user.image.webp}
                         currentUsername={currentUser.username}
                         onUpvote={() => handleScoreChange(reply.id, VOTE_VALUE.up)}
                         onDownvote={() => handleScoreChange(reply.id, VOTE_VALUE.down)}
@@ -293,7 +278,7 @@ function App({ initialData = defaultData }) {
         <form className="comment-composer" onSubmit={handleComposerSubmit}>
           <img
             className="comment-composer__avatar"
-            src={getAvatarSrc(currentUser.username)}
+            src={currentUser.image.webp}
             alt=""
             aria-hidden="true"
             width="40"
