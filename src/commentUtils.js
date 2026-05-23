@@ -1,7 +1,78 @@
 export const COMMENTS_STORAGE_KEY = 'comments-section-comments'
 
+export const VOTE_VALUE = {
+  down: -1,
+  neutral: 0,
+  up: 1,
+}
+
+function isValidLegacyVoteState(voteState) {
+  if (voteState === undefined) {
+    return true
+  }
+
+  if (voteState === 'neutral' || voteState === 'up' || voteState === 'down') {
+    return true
+  }
+
+  return Boolean(
+    voteState
+      && typeof voteState === 'object'
+      && !Array.isArray(voteState)
+      && (voteState.current === 'neutral' || voteState.current === 'up' || voteState.current === 'down')
+      && typeof voteState.upUsed === 'boolean'
+      && typeof voteState.downUsed === 'boolean',
+  )
+}
+
+function isValidVote(vote) {
+  return vote === undefined || Object.values(VOTE_VALUE).includes(vote)
+}
+
+function getLegacyVoteValue(voteState) {
+  if (voteState === 'up' || voteState?.current === 'up') {
+    return VOTE_VALUE.up
+  }
+
+  if (voteState === 'down' || voteState?.current === 'down') {
+    return VOTE_VALUE.down
+  }
+
+  return VOTE_VALUE.neutral
+}
+
+function normalizeVoteValue(vote, voteState) {
+  if (isValidVote(vote) && vote !== undefined) {
+    return vote
+  }
+
+  return getLegacyVoteValue(voteState)
+}
+
+function normalizeReply(reply) {
+  const vote = normalizeVoteValue(reply.vote, reply.voteState)
+
+  return {
+    ...reply,
+    score: reply.vote === undefined ? reply.score - vote : reply.score,
+    vote,
+  }
+}
+
+function normalizeComment(comment) {
+  const vote = normalizeVoteValue(comment.vote, comment.voteState)
+
+  return {
+    ...comment,
+    score: comment.vote === undefined ? comment.score - vote : comment.score,
+    vote,
+    replies: comment.replies.map(normalizeReply),
+  }
+}
+
 function seedStoredComments(fallbackComments) {
-  const serializedComments = JSON.stringify(fallbackComments)
+  const normalizedComments = fallbackComments.map(normalizeComment)
+  const serializedComments = JSON.stringify(normalizedComments)
 
   window.localStorage.setItem(COMMENTS_STORAGE_KEY, serializedComments)
 
@@ -19,6 +90,8 @@ function isValidReply(reply) {
       && typeof reply.content === 'string'
       && typeof reply.createdAt === 'string'
       && typeof reply.score === 'number'
+      && isValidVote(reply.vote)
+      && isValidLegacyVoteState(reply.voteState)
       && isValidCommentUser(reply.user),
   )
 }
@@ -30,15 +103,41 @@ function isValidComment(comment) {
       && typeof comment.content === 'string'
       && typeof comment.createdAt === 'string'
       && typeof comment.score === 'number'
+      && isValidVote(comment.vote)
+      && isValidLegacyVoteState(comment.voteState)
       && Array.isArray(comment.replies)
       && isValidCommentUser(comment.user)
       && comment.replies.every(isValidReply),
   )
 }
 
+function updateVote(item, nextVote) {
+  const currentVote = item.vote ?? VOTE_VALUE.neutral
+
+  if (!isValidVote(nextVote) || nextVote === undefined) {
+    return item
+  }
+
+  if (currentVote === nextVote) {
+    return item
+  }
+
+   if (currentVote !== VOTE_VALUE.neutral && currentVote === -nextVote) {
+    return {
+      ...item,
+      vote: VOTE_VALUE.neutral,
+    }
+  }
+
+  return {
+    ...item,
+    vote: nextVote,
+  }
+}
+
 export function getStoredComments(fallbackComments) {
   if (typeof window === 'undefined') {
-    return fallbackComments
+    return fallbackComments.map(normalizeComment)
   }
 
   try {
@@ -54,7 +153,7 @@ export function getStoredComments(fallbackComments) {
       return seedStoredComments(fallbackComments)
     }
 
-    return parsedValue
+    return parsedValue.map(normalizeComment)
   } catch {
     return seedStoredComments(fallbackComments)
   }
@@ -80,7 +179,7 @@ export function getNextCommentId(comments) {
 }
 
 export function addComment(comments, newComment) {
-  return [...comments, newComment]
+  return [...comments, normalizeComment(newComment)]
 }
 
 export function addReplyToComment(comments, parentCommentId, newReply) {
@@ -91,7 +190,7 @@ export function addReplyToComment(comments, parentCommentId, newReply) {
 
     return {
       ...comment,
-      replies: [...comment.replies, newReply],
+      replies: [...comment.replies, normalizeReply(newReply)],
     }
   })
 }
@@ -139,13 +238,14 @@ export function deleteCommentById(comments, targetId) {
     }))
 }
 
-export function updateCommentScore(comments, targetId, scoreChange) {
+export function updateCommentVote(comments, targetId, nextVote, currentUsername) {
   return comments.map((comment) => {
     if (comment.id === targetId) {
-      return {
-        ...comment,
-        score: Math.max(0, comment.score + scoreChange),
+      if (comment.user.username === currentUsername) {
+        return comment
       }
+
+      return updateVote(comment, nextVote)
     }
 
     const replies = comment.replies.map((reply) => {
@@ -153,10 +253,11 @@ export function updateCommentScore(comments, targetId, scoreChange) {
         return reply
       }
 
-      return {
-        ...reply,
-        score: Math.max(0, reply.score + scoreChange),
+      if (reply.user.username === currentUsername) {
+        return reply
       }
+
+      return updateVote(reply, nextVote)
     })
 
     const hasReplyUpdate = replies.some((reply, index) => reply !== comment.replies[index])
@@ -170,4 +271,8 @@ export function updateCommentScore(comments, targetId, scoreChange) {
       replies,
     }
   })
+}
+
+export function getDisplayedScore(comment) {
+  return comment.score + (comment.vote ?? VOTE_VALUE.neutral)
 }

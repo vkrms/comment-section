@@ -10,11 +10,13 @@ import {
   addComment,
   addReplyToComment,
   deleteCommentById,
+  getDisplayedScore,
   getNextCommentId,
   getStoredComments,
   setStoredComments,
   updateCommentContent,
-  updateCommentScore,
+  updateCommentVote,
+  VOTE_VALUE,
 } from './commentUtils'
 import './App.css'
 
@@ -52,8 +54,13 @@ function App({ initialData = defaultData }) {
     setCommentPendingDeletion(null)
   }
 
-  function handleScoreChange(commentId, scoreChange) {
-    setComments((currentComments) => updateCommentScore(currentComments, commentId, scoreChange))
+  function handleScoreChange(commentId, voteDirection) {
+    setComments((currentComments) => updateCommentVote(
+      currentComments,
+      commentId,
+      voteDirection,
+      currentUser.username,
+    ))
   }
 
   function handleComposerSubmit(event) {
@@ -71,6 +78,7 @@ function App({ initialData = defaultData }) {
         content,
         createdAt: createTimestampLabel(),
         score: 0,
+        vote: VOTE_VALUE.neutral,
         user: currentUser,
         replies: [],
       }
@@ -132,6 +140,7 @@ function App({ initialData = defaultData }) {
         content,
         createdAt: createTimestampLabel(),
         score: 0,
+        vote: VOTE_VALUE.neutral,
         replyingTo: activeDraft.replyingTo,
         user: currentUser,
       }
@@ -232,10 +241,11 @@ function App({ initialData = defaultData }) {
             <section className="comment-thread__group" key={comment.id}>
               <CommentCard
                 comment={comment}
+                displayedScore={getDisplayedScore(comment)}
                 avatarSrc={getAvatarSrc(comment.user.username)}
                 currentUsername={currentUser.username}
-                onUpvote={() => handleScoreChange(comment.id, 1)}
-                onDownvote={() => handleScoreChange(comment.id, -1)}
+                onUpvote={() => handleScoreChange(comment.id, VOTE_VALUE.up)}
+                onDownvote={() => handleScoreChange(comment.id, VOTE_VALUE.down)}
                 onReply={() => handleReplyStart(comment.id, comment.id, comment.user.username)}
                 onDelete={() => handleDeleteRequest(comment.id)}
                 onEdit={() => handleEditStart(comment)}
@@ -256,10 +266,11 @@ function App({ initialData = defaultData }) {
                     <React.Fragment key={reply.id}>
                       <CommentCard
                         comment={reply}
+                        displayedScore={getDisplayedScore(reply)}
                         avatarSrc={getAvatarSrc(reply.user.username)}
                         currentUsername={currentUser.username}
-                        onUpvote={() => handleScoreChange(reply.id, 1)}
-                        onDownvote={() => handleScoreChange(reply.id, -1)}
+                        onUpvote={() => handleScoreChange(reply.id, VOTE_VALUE.up)}
+                        onDownvote={() => handleScoreChange(reply.id, VOTE_VALUE.down)}
                         onReply={() => handleReplyStart(comment.id, reply.id, reply.user.username)}
                         onDelete={() => handleDeleteRequest(reply.id)}
                         onEdit={() => handleEditStart(reply)}

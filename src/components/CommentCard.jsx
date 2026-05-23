@@ -5,6 +5,7 @@ import editIcon from '../../images/icon-edit.svg'
 import plusIcon from '../../images/icon-plus.svg'
 import minusIcon from '../../images/icon-minus.svg'
 import replyIcon from '../../images/icon-reply.svg'
+import { VOTE_VALUE } from '../commentUtils'
 import './CommentCard.css'
 
 function getInitials(username) {
@@ -18,6 +19,7 @@ function getInitials(username) {
 
 function CommentCard({
     comment,
+    displayedScore,
     avatarSrc,
     currentUsername,
     onUpvote,
@@ -32,31 +34,38 @@ function CommentCard({
     onEditSubmit,
 }) {
     const isCurrentUser = comment.user.username === currentUsername
+    const currentVote = comment.vote ?? VOTE_VALUE.neutral
 
     return (
         <article className="comment-card" aria-label={`${comment.user.username} comment`}>
             <div className="comment-card__score" aria-label="Comment score controls">
-                <button
-                    type="button"
-                    className="comment-card__score-button"
-                    onClick={onUpvote}
-                    aria-label="Upvote comment"
-                >
-                    <img src={plusIcon} alt="" aria-hidden="true" />
-                </button>
+                {!isCurrentUser ? (
+                    <button
+                        type="button"
+                        className="comment-card__score-button"
+                        onClick={onUpvote}
+                        aria-label="Upvote comment"
+                        aria-pressed={currentVote === VOTE_VALUE.up}
+                    >
+                        <img src={plusIcon} alt="" aria-hidden="true" />
+                    </button>
+                ) : null}
 
                 <output className="comment-card__score-value" aria-live="polite">
-                    {comment.score}
+                    {displayedScore}
                 </output>
 
-                <button
-                    type="button"
-                    className="comment-card__score-button"
-                    onClick={onDownvote}
-                    aria-label="Downvote comment"
-                >
-                    <img src={minusIcon} alt="" aria-hidden="true" />
-                </button>
+                {!isCurrentUser ? (
+                    <button
+                        type="button"
+                        className="comment-card__score-button"
+                        onClick={onDownvote}
+                        aria-label="Downvote comment"
+                        aria-pressed={currentVote === VOTE_VALUE.down}
+                    >
+                        <img src={minusIcon} alt="" aria-hidden="true" />
+                    </button>
+                ) : null}
             </div>
 
             <header className="comment-card__meta">
