@@ -5,7 +5,7 @@ function DeleteCommentDialog({ open, onOpenChange, onConfirm }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="delete-dialog__overlay" />
+        <Dialog.Overlay className="delete-dialog__overlay" data-testid="delete-dialog-overlay" />
         <Dialog.Content className="delete-dialog__content">
           <Dialog.Title className="delete-dialog__title">Delete comment</Dialog.Title>
           <Dialog.Description className="delete-dialog__description">
